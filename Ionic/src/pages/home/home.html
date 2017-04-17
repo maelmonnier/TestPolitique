@@ -1,0 +1,17 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Test Politique Présidentielle 2017</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <h2>Bienvenue sur ce test d'aide au positionnement politique</h2>
+  <p>Tous les candidats ont été pris en compte pour ce test : </p>
+  <ion-list inset>
+    <ion-item *ngFor="let candidat of candidates | async">
+      <div item-left>{{candidat.id}}</div>
+      <div item-right>{{candidat.name}}</div>
+    </ion-item>
+  </ion-list>
+  <p>Démarrer le test !</p>
+</ion-content>

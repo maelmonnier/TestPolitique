@@ -1,0 +1,20 @@
+{
+  "name": "test-politique",
+  "description": "Test Politique",
+  "main": "",
+  "authors": [
+    "Ionic Framework"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ngCordova": "^0.1.27-alpha"
+  }
+}
