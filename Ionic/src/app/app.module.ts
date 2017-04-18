@@ -14,6 +14,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { File } from '@ionic-native/file';
 
 import { QuestionnaireService } from '../services/questionnaire.service';
+import {TestsPage} from "../pages/tests/tests";
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import { QuestionnaireService } from '../services/questionnaire.service';
     AboutPage,
     ContactPage,
     HomePage,
+    TestsPage,
     TabsPage
   ],
   imports: [
@@ -35,6 +37,7 @@ import { QuestionnaireService } from '../services/questionnaire.service';
     AboutPage,
     ContactPage,
     HomePage,
+    TestsPage,
     TabsPage
   ],
   providers: [

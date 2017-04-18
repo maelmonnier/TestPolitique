@@ -76,47 +76,49 @@ export class QuestionnaireService {
         console.log("InitDB : dbInitialized");
         resolve(true);
         console.log("InitDB : Promise resolved");
-      }
-      console.log("InitDB : db in initialization");
-      if (window['sqlitePlugin']) {
-        if (this.copyDbAgain) {
-          console.log("InitDB : Copy of a fresh version of the database app file");
-          this.copyDB().then(() => {
-            console.log("InitDB : Promise resolved");
-            resolve(true);
-          })
-        } else {
-          let src = this.file.dataDirectory + this.dbname;
-          this.file.resolveLocalFilesystemUrl(src)
-            .then(
-              () => {
-                console.log("InitDB : Db already copied to local dir");
-                this.copyDB().then(() => {
-                  //this.openDB();
-                  console.log("InitDB : Promise resolved");
-                  resolve(true);
-                })
-
-              })
-            .catch(
-              () => {
-                console.log("InitDB : Db will be copied to local dir");
-                this.copyDB().then(() => {
-                  //this.openDB();
-                  console.log("InitDB : Promise resolved");
-                  resolve(true);
-                })
-              });
-        }
       } else {
-        console.warn('Storage: SQLite plugin not installed, falling back to WebSQL. Make sure to install cordova-sqlite-storage in production!');
-        this._db = window.openDatabase(this.dbname, '1', 'database', 5 * 1024 * 1024);
-        this.initWebSqlFromSQLFile().then((res) => {
-            console.log("InitDB : Promise resolved");
-            resolve(res);
-          }
-        );
+        console.log("InitDB : db in initialization");
+        if (window['sqlitePlugin']) {
+          if (this.copyDbAgain) {
+            console.log("InitDB : Copy of a fresh version of the database app file");
+            this.copyDB().then(() => {
+              console.log("InitDB : Promise resolved");
+              resolve(true);
+            })
+          } else {
+            let src = this.file.dataDirectory + this.dbname;
+            this.file.resolveLocalFilesystemUrl(src)
+              .then(
+                () => {
+                  console.log("InitDB : Db already copied to local dir");
+                  this.copyDB().then(() => {
+                    //this.openDB();
+                    console.log("InitDB : Promise resolved");
+                    resolve(true);
+                  })
 
+                })
+              .catch(
+                () => {
+                  console.log("InitDB : Db will be copied to local dir");
+                  this.copyDB().then(() => {
+                    //this.openDB();
+                    console.log("InitDB : Promise resolved");
+                    resolve(true);
+                  })
+                });
+          }
+        } else {
+          console.warn('Storage: SQLite plugin not installed, falling back to WebSQL. Make sure to install cordova-sqlite-storage in production!');
+          this._db = window.openDatabase(this.dbname, '1', 'database', 5 * 1024 * 1024);
+          this.initWebSqlFromSQLFile().then((res) => {
+              console.log("InitDB : Promise resolved / DB marked as initialized");
+            this.dbInitialized = true;
+              resolve(res);
+            }
+          );
+
+        }
       }
 
      // var msg;
@@ -172,7 +174,7 @@ export class QuestionnaireService {
       this.initDB().then(() => {
         console.log("Database should be initialized");
         this._db.transaction((tx) => {
-          tx.executeSql('SELECT * FROM CANDIDATES', [], (tx, results) => {
+          tx.executeSql('SELECT id, name, party, party_long FROM CANDIDATES', [], (tx, results) => {
             var len = results.rows.length, i;
             console.warn("<p>Found rows: " + len + "</p>");
 
@@ -185,6 +187,82 @@ export class QuestionnaireService {
         })
       })
     });
+
+  }
+
+  getThematicName(thematicId) : Promise<String> {
+    return new Promise((resolve, reject) => {
+
+      this.initDB().then(() => {
+        console.log("getThematicName Database should be initialized");
+        this._db.transaction((tx) => {
+
+          tx.executeSql('SELECT id, name FROM THEMATICS WHERE id = ' + thematicId, [], (tx, results) => {
+            var len = results.rows.length;
+            console.warn("getThematicName <p>Found thematics : " + len + "</p>");
+
+            if (len > 0) {
+              console.warn("getThematicName <p><b>" + results.rows.item(0).name + "</b></p>");
+              resolve(results.rows.item(0).name);
+            }
+          }, (err) => {
+            console.log("Query error ", err.message);
+          });
+        })
+      })
+    });
+  }
+
+  getThematicTopicsAndQuestions(thematicId) : Promise<Array<Object>> {
+    return new Promise((resolve,reject) => {
+
+      this.initDB().then(() => {
+        console.log("getThematicTopicsAndQuestions Database should be initialized");
+        this._db.transaction((tx) => {
+
+          var thematicContent = [];
+
+          tx.executeSql('SELECT id, name FROM TOPICS WHERE thematic_id = ' + thematicId, [], (tx, results) => {
+            var len = results.rows.length, i;
+            console.warn("getThematicTopicsAndQuestions <p>Found topics : " + len + "</p>");
+
+            thematicContent = [];
+
+            for (i = 0; i < len; i++) {
+              thematicContent.push({id: results.rows.item(i).id, name: results.rows.item(i).name});
+              console.warn("getThematicTopicsAndQuestions <p><b>" + results.rows.item(i).name + "</b></p>");
+            }
+          }, (err) => {
+            console.log("Query error ", err.message);
+          });
+
+
+          tx.executeSql('SELECT topic_id, id, text FROM QUESTIONS WHERE thematic_id = ' + thematicId, [], (tx, results) => {
+            var len = results.rows.length, i;
+            console.warn("getThematicTopicsAndQuestions <p>Found questions : " + len + "</p>");
+
+            for (i = 0; i < len; i++) {
+              let topic_id = results.rows.item(i).topic_id;
+              if (!thematicContent[topic_id-1].questions) {
+                thematicContent[topic_id-1].questions = [];
+              }
+
+              thematicContent[topic_id-1].questions.push(
+                {topic_id: results.rows.item(i).id,
+                  id: results.rows.item(i).id,
+                  text: results.rows.item(i).text});
+              console.warn("getThematicTopicsAndQuestions <p><b>" + results.rows.item(i).text + "</b></p>");
+            }
+            resolve(thematicContent);
+          }, (err) => {
+            console.log("Query error ", err.message);
+          });
+
+
+        })
+      })
+    });
+
 
   }
 

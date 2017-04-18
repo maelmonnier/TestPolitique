@@ -1,6 +1,7 @@
-import { Component, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
 import { NavController, Platform } from 'ionic-angular';
 import {QuestionnaireService} from "../../services/questionnaire.service";
+import {TestsPage} from "../tests/tests";
 
 @Component({
   selector: 'page-home',
@@ -9,11 +10,9 @@ import {QuestionnaireService} from "../../services/questionnaire.service";
 export class HomePage {
 
   public candidates: Promise<Array<Object>>;
-  //private _db;
 
   constructor(public navCtrl: NavController,
               private platform: Platform,
-              private zone: NgZone,
               private questionnaireService: QuestionnaireService) {
 
   }
@@ -22,14 +21,15 @@ export class HomePage {
     this.platform.ready().then(() => {
       console.log("Call of promise getAllCandidates");
       this.candidates = this.questionnaireService.getAllCandidates();
-      /*this.questionnaireService.getAllCandidates()
-        .then((res) => {
-          this.candidates = res;
-        console.log("End of promise" + res);
-      })
-        .catch((error) => {
-          console.log(error);
-        });*/
+    });
+  }
+
+  testPage() {
+    // push another page onto the navigation stack
+    // causing the nav controller to transition to the new page
+    // optional data can also be passed to the pushed page.
+    this.navCtrl.push(TestsPage, {
+      id: 1
     });
   }
 
